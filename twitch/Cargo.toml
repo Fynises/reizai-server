@@ -1,0 +1,17 @@
+[package]
+name = "twitch"
+version = "0.1.0"
+edition = "2021"
+description = "twitch specific code for bot function"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1.73"
+database = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+common = { workspace = true }

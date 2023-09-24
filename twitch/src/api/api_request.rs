@@ -4,11 +4,11 @@ use anyhow::{Result, anyhow};
 use super::error::TwitchApiError;
 
 #[async_trait]
-pub(crate) trait TwitchApiRequest<T> {
+pub trait TwitchApiRequest<T> {
     async fn run(&self, auth: &TwitchAuth) -> Result<T, TwitchApiError>;
 }
 
-pub(crate) async fn fetch<T> (
+pub async fn fetch<T> (
     twitch_auth: &mut TwitchAuth,
     callable: impl TwitchApiRequest<T>
 ) -> Result<T> {

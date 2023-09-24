@@ -9,3 +9,6 @@ description = "crate containing common modules, currently just used to hold a ht
 [dependencies]
 once_cell = { workspace = true }
 reqwest = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }

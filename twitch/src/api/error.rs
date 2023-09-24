@@ -1,7 +1,8 @@
 use reqwest::StatusCode;
+use axum::response::IntoResponse;
 
 #[derive(Debug, thiserror::Error)]
-pub(crate) enum TwitchApiError {
+pub enum TwitchApiError {
     #[error("json payload error")]
     JsonPayloadError(#[from] serde_json::Error),
     #[error("twitch api returned with 401")]
@@ -31,5 +32,11 @@ impl TwitchApiError {
             Self::Unauthorized => true,
             Self::ResponseError(_) => false,
         }
+    }
+}
+
+impl IntoResponse for TwitchApiError {
+    fn into_response(self) -> axum::response::Response {
+        StatusCode::INTERNAL_SERVER_ERROR.into_response()
     }
 }

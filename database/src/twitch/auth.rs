@@ -1,5 +1,5 @@
+use chrono::NaiveDateTime;
 use common::structs::twitch::twitch_auth_flow::{TwitchTokenResponse, JsonUserData};
-use sqlx::types::chrono::{DateTime, Utc};
 use anyhow::Result;
 
 use crate::get_pool;
@@ -9,57 +9,66 @@ pub struct Auth {
     pub user_id: String,
     pub refresh_token: String,
     pub token: String,
-    pub last_authenticated: Option<DateTime<Utc>>,
+    pub last_authenticated: Option<NaiveDateTime>,
 }
 
 impl Auth {
     pub async fn query_single(user_id: &String) -> Result<Self> {
-        let user_auth = sqlx::query_as::<_, Self>("
+        let user_auth = sqlx::query_as!(Self, r#"
             SELECT user_id, refresh_token, token, last_authenticated 
-            FROM twitch.auth 
-            WHERE user_id = ?
-        ").bind(user_id)
-        .fetch_one(get_pool()?).await?;
+            FROM twitch.auth
+            WHERE user_id = $1"#,
+            user_id
+        ).fetch_one(get_pool()?).await?;
         Ok(user_auth)
     }
 
     pub async fn insert_login(
-        auth: TwitchTokenResponse,
-        user: JsonUserData,
+        auth: &TwitchTokenResponse,
+        user: &JsonUserData,
     ) -> Result<()> {
         //TODO: improve SQL query to only use one query
-        let _ = sqlx::query("
+        log::info!("refresh token: {auth:#?}");
+        let _ = sqlx::query!(r#"
             INSERT INTO twitch.user(user_id, user_login, cached_user_name)
-            VALUES (?, ?, ?)
+            VALUES($1, $2, $3)
             ON CONFLICT(user_id) DO 
-            UPDATE SET user_login = ?,
-            cached_user_name = ?
-        ")
-        .bind(&user.id)
-        .bind(&user.login)
-        .bind(&user.display_name)
-        .bind(&user.login)
-        .bind(&user.display_name)
-        .execute(get_pool()?).await?;
+            UPDATE SET 
+            user_login = $2,
+            cached_user_name = $3"#,
+            &user.id,
+            &user.login,
+            &user.display_name
+        ).execute(get_pool()?).await?;
 
-        let _ = sqlx::query("
-            INSERT INTO twitch.auth(user_id, refresh_token, token, last_authenticated)
-            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(user_id) DO
-            UPDATE SET refresh_token = ?,
-            token = ?,
-            last_authenticated = CURRENT_TIMESTAMP
-        ")
-        .bind(&user.id)
-        .bind(&auth.refresh_token)
-        .bind(&auth.access_token)
-        .bind(&auth.refresh_token)
-        .bind(&auth.access_token)
-        .execute(get_pool()?).await?;
+        let _ = sqlx::query!(r#"
+            INSERT INTO twitch.auth(user_id, refresh_token, token, last_authenticated) 
+            VALUES ($1, $2, $3, CURRENT_TIMESTAMP) 
+            ON CONFLICT(user_id) DO 
+            UPDATE SET refresh_token = $2, 
+            token = $3, 
+            last_authenticated = CURRENT_TIMESTAMP"#,
+            &user.id,
+            &auth.refresh_token,
+            &auth.access_token
+        ).execute(get_pool()?).await?;
         Ok(())
     }
 
-    pub async fn refresh_token(&self) -> Result<()> {
-        todo!()
+    pub async fn refresh_token(
+        &self, 
+        token: &String, 
+        r_token: &String
+    ) -> Result<()> {
+        let _ = sqlx::query!(r#"
+            UPDATE twitch.auth SET
+            refresh_token = $1,
+            token = $2
+            WHERE user_id = $3"#,
+            r_token,
+            token,
+            self.user_id
+        ).execute(get_pool()?).await?;
+        Ok(())
     }
 }

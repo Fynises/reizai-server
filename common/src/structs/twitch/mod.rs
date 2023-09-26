@@ -22,6 +22,7 @@ pub mod twitch_auth_flow {
         pub profile_image_url: String,
         pub offline_image_url: String,
         pub view_count: Option<usize>,
+        pub created_at: String,
     }
 
     #[derive(Debug, Deserialize)]

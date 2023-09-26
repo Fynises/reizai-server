@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use database::twitch::auth::Auth as TwitchAuth;
 use anyhow::{Result, anyhow};
-use super::error::TwitchApiError;
+use super::{error::TwitchApiError, api_auth::refresh_token};
 
 #[async_trait]
 pub trait TwitchApiRequest<T> {
@@ -16,7 +16,8 @@ pub async fn fetch<T> (
         match callable.run(&twitch_auth).await {
             Ok(res) => return Ok(res),
             Err(TwitchApiError::Unauthorized) => {
-                let _ = twitch_auth.refresh_token().await?;
+                let token_res = refresh_token(&twitch_auth.refresh_token).await?;
+                let _ = twitch_auth.refresh_token(&token_res.refresh_token, &token_res.access_token).await?;
                 continue;
             },
             Err(e) => return Err(e.into())

@@ -7,6 +7,7 @@ description = "twitch specific code for bot function"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+log = { workspace = true }
 async-trait = "0.1.73"
 database = { workspace = true }
 anyhow = { workspace = true }

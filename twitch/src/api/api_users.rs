@@ -10,6 +10,7 @@ use super::error::TwitchApiError;
 
 pub enum UserRequest {
     Name(String),
+    Token,
 }
 
 async fn fetch_by_name(
@@ -26,9 +27,10 @@ async fn fetch_by_name(
     Ok(req.json::<ApiGetUser>().await?)
 }
 
-pub async fn fetch_by_token (
+pub async fn fetch_by_token(
     access_token: &String,
 ) -> Result<ApiGetUser, TwitchApiError> {
+    log::info!("token: {}", access_token);
     let req = HTTP_CLIENT.get("https://api.twitch.tv/helix/users")
         .bearer_auth(access_token)
         .header("Client-Id", &CONFIG.client_id)
@@ -42,6 +44,7 @@ impl TwitchApiRequest<ApiGetUser> for UserRequest {
     async fn run(&self, auth: &TwitchAuth) -> Result<ApiGetUser, TwitchApiError> {
         match self {
             UserRequest::Name(name) => fetch_by_name(&name, &auth.token).await,
+            UserRequest::Token => fetch_by_token(&auth.token).await
         }
     }
 }

@@ -19,7 +19,9 @@ dotenvy = "0.15.7"
 anyhow = "1.0.75"
 thiserror = "1.0.48"
 tokio = { version = "1.32.0", features = ["full"] }
-axum = "0.6.20"
+axum = { version = "0.6.20", features = ["headers"] }
+tower = { version = "0.4", features = ["util"] }
+tower-http = { version = "0.4.0", features = ["fs", "trace", "cors"] }
 sqlx = { version = "0.7", features = [ "runtime-tokio", "postgres", "chrono" ] }
 once_cell = "1.18.0"
 database = { path = "./database" }
@@ -29,6 +31,8 @@ twitch = { path = "./twitch" }
 reqwest = { version = "0.11.20", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+chrono = { version = "0.4.23", features = ["serde"] }
+log = "0.4.20"
 
 [dependencies]
 dotenvy = { workspace = true }
@@ -37,5 +41,7 @@ database = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"

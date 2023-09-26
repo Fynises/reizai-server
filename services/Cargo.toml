@@ -17,3 +17,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 database = { workspace = true }
 twitch = { workspace = true }
+once_cell = { workspace = true }
+chrono = { workspace = true }
+jsonwebtoken = "8.3.0"
+log = { workspace = true }
